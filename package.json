@@ -1,7 +1,7 @@
 {
-  "name": "nodejs-starter",
+  "name": "obligato-server",
   "version": "3.0.0",
-  "description": "Simple Node.js application",
+  "description": "Obligato server for handling HTTP requests and metrics",
   "license": "EPL-2.0",
   "scripts": {
     "start": "node server.js",
@@ -9,6 +9,7 @@
     "test": "node test/test.js"
   },
   "dependencies": {
+    "@google/genai": "^1.15.0",
     "express": "^4.18.1",
     "pino": "^8.5.0",
     "pino-http": "^8.2.0",
