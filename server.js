@@ -10,7 +10,8 @@ const requestHistogram = new Prometheus.Histogram({
     labelNames: ['code', 'handler', 'method'],
     buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
 })
-    const cors = require('cors');
+    
+const cors = require('cors');
 
 const requestTimer = (req, res, next) => {
   const path = new URL(req.url, `http://${req.hostname}`).pathname
@@ -54,8 +55,6 @@ app.use(require('pino-http')({logger: pino}));
 
 // For parsing JSON bodies
 app.use(express.json());
-
-const cors = require('cors');
 
 // Enable CORS globally for all routes except /threat-analysis
 app.use(cors());
