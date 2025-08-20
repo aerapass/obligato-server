@@ -10,6 +10,7 @@ const requestHistogram = new Prometheus.Histogram({
     labelNames: ['code', 'handler', 'method'],
     buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
 })
+    const cors = require('cors');
 
 const requestTimer = (req, res, next) => {
   const path = new URL(req.url, `http://${req.hostname}`).pathname
@@ -54,8 +55,15 @@ app.use(require('pino-http')({logger: pino}));
 // For parsing JSON bodies
 app.use(express.json());
 
+const cors = require('cors');
+
+// Enable CORS globally for all routes except /threat-analysis
+app.use(cors());
+
 // Threat analysis route
-app.post('/threat-analysis', async (req, res) => {
+app.post('/threat-analysis', cors({
+  origin: ["https://obligato.io", "https://www.obligato.io"],
+}), async (req, res) => {
   try {
   // Use @google/genai
   const { GoogleGenerativeAI } = await import("@google/genai");
@@ -64,8 +72,10 @@ app.post('/threat-analysis', async (req, res) => {
     if (!apiKey) {
       return res.status(500).json({ error: "GEMINI_API_KEY not set." });
     }
+
     const genAI = new GoogleGenerativeAI(apiKey);
     const { userInput } = req.body;
+
     if (!userInput) {
       return res.status(400).json({ error: "Missing userInput." });
     }
