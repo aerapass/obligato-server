@@ -31,7 +31,7 @@ async function sendEmailSES(to, subject, body) {
         Data: subject,
       },
     },
-    Source: process.env.AWS_SES_FROM || 'info@aerapass.com',
+    Source: 'Obligato.io <info@obligato.io>',
   };
   return ses.sendEmail(params).promise();
 }

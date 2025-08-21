@@ -121,7 +121,7 @@ app.post('/request-consultation', async (req, res) => {
     await sendEmailSES('info@aerapass.com', subject, body);
     res.status(200).json({ message: 'Consultation request sent successfully.' });
   } catch (error) {
-    req.log.error({ error }, 'Failed to send consultation request');
+    console.log("Error sending email:", error);
     res.status(500).json({ error: 'Failed to send consultation request.' });
   }
 });
