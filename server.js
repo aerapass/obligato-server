@@ -60,6 +60,7 @@ app.use(express.json());
 app.use(cors());
 
 // Threat analysis route
+const { sendEmailSES } = require('./ses');
 app.post('/threat-analysis', cors({
   origin: ["https://obligato.io", "https://www.obligato.io"],
 }), async (req, res) => {
@@ -71,7 +72,7 @@ app.post('/threat-analysis', cors({
       return res.status(500).json({ error: "GEMINI_API_KEY not set." });
     }
     const genAI = new GoogleGenAI({ apiKey });
-    const { userInput } = req.body;
+    const { userInput, userEmail, userPhone } = req.body;
     if (!userInput) {
       return res.status(400).json({ error: "Missing userInput." });
     }
@@ -92,8 +93,30 @@ Based on this, generate a concise "Personalized Threat Report". The report shoul
       model: 'gemini-2.0-flash-001',
       contents: prompt,
     });
-    const text = result.text;
-    res.status(200).json({ analysis: text });
+    const analysis = result.text;
+
+    // Send email with SES
+    const emailBody = `
+      <h2>Threat Analysis Request</h2>
+      <p><strong>User Email:</strong> ${userEmail || 'N/A'}</p>
+      <p><strong>User Phone:</strong> ${userPhone || 'N/A'}</p>
+      <p><strong>User Input:</strong> ${userInput}</p>
+      <hr />
+      <h3>Analysis</h3>
+      <div>${analysis}</div>
+    `;
+    try {
+      await sendEmailSES(
+        'info@aerapass.com',
+        'Threat Analysis Request from obligato.io',
+        emailBody
+      );
+    } catch (emailErr) {
+      console.error('SES Email Error:', emailErr);
+      // Optionally, you can notify the user of email failure, but don't block analysis response
+    }
+
+    res.status(200).json({ analysis });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to generate threat analysis." });
