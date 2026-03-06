@@ -1,6 +1,7 @@
 const Prometheus = require('prom-client')
 const express = require('express');
 const http = require('http');
+const rateLimit = require('express-rate-limit');
 
 Prometheus.collectDefaultMetrics();
 
@@ -62,7 +63,15 @@ app.use(cors());
 // Threat analysis route
 const { sendEmailSES } = require('./ses');
 
-app.post('/threat-analysis', cors({
+const threatAnalysisLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 requests per window per IP
+  message: { error: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post('/threat-analysis', threatAnalysisLimiter, cors({
   origin: ["https://obligato.io", "https://www.obligato.io"],
 }), async (req, res) => {
   try {
