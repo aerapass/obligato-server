@@ -66,13 +66,13 @@ app.post('/threat-analysis', cors({
   origin: ["https://obligato.io", "https://www.obligato.io"],
 }), async (req, res) => {
   try {
-    // Use @google/genai
-    const { GoogleGenAI } = await import("@google/genai");
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Use OpenAI
+    const OpenAI = require('openai');
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "GEMINI_API_KEY not set." });
+      return res.status(500).json({ error: "OPENAI_API_KEY not set." });
     }
-    const genAI = new GoogleGenAI({ apiKey });
+    const openai = new OpenAI({ apiKey });
     const { userInput } = req.body;
     if (!userInput) {
       return res.status(400).json({ error: "Missing userInput." });
@@ -90,11 +90,11 @@ User's situation:
 
 Based on this, generate a concise "Personalized Threat Report". The report should be 2-3 short paragraphs. Use strong, punchy language. Start with a direct headline like "**ANALYSIS: Your Exposure Profile**". Do not offer a solution, only agitate the problem. Use markdown for bolding (**text**) and bullet points (* item).
     `;
-    const result = await genAI.models.generateContent({
-      model: 'gemini-2.0-flash-001',
-      contents: prompt,
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
     });
-    const analysis = result.text;
+    const analysis = completion.choices[0].message.content;
 
     res.status(200).json({ analysis });
   } catch (error) {
